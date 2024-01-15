@@ -68,12 +68,12 @@ class _BookingPageState extends State<BookingPage> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            _hotelData(hotelBookingData),
-                            _bookingData(hotelBookingData),
-                            _informationBuyer(),
+                            _blockWithTheNumber(hotelBookingData),
+                            _theBlockWithTheReservationData(hotelBookingData),
+                            _aBlockWithInformationAboutTheBuyer(),
                             _tourists(),
                             _addTourists(),
-                            _totalWidget(hotelBookingData),
+                            _theBlockWithTheFinalPrice(hotelBookingData),
                             CustomButton(onPressed: () {
                               bool isFormValid = _formKey.currentState!.validate();
                               bool areAllTouristsFieldsValid = _controllerValidation.values.every((isValid) => isValid);
@@ -98,6 +98,210 @@ class _BookingPageState extends State<BookingPage> {
             }
           },
         )
+    );
+  }
+
+  Widget _myAppBar() {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        color: Colors.white,
+        height: kToolbarHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () {
+                  Navigator.pop(context);
+                }
+            ),
+            const Text(
+              'Бронирование',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+            const Opacity(
+              opacity: 0,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_outlined),
+                onPressed: null,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _blockWithTheNumber(Map<String, dynamic> hotelBookingData) {
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          // height: MediaQuery.of(context).size.height * 0.2,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  height: MediaQuery.of(context).size.height * 0.04,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFFFC700).withOpacity(0.2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.star, color: Color(0xFFFFC800), size: 15),
+                      Text('${hotelBookingData['horating']} ${hotelBookingData['rating_name']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFC800)))
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text('Steigenberger Makadi', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                    foregroundColor: Colors.blue,
+                  ), child: Text('${hotelBookingData['hotel_adress']}'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _theBlockWithTheReservationData(Map<String, dynamic> hotelBookingData) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height * 0.35,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _bookingDataRow('Вылет из', hotelBookingData['departure']),
+                Row(
+                  children: [
+                    const Text('Страна, город    ', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400),
+                    ),
+                    Expanded(child: Text('${hotelBookingData['arrival_country']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start)),
+                  ],
+                ),
+                _bookingDataRow('Даты', '${hotelBookingData['tour_date_start']} – ${hotelBookingData['tour_date_stop']}'),
+                _bookingDataRow('Кол-во ночей', hotelBookingData['number_of_nights']),
+                _bookingDataRow('Отель', 'Steigenberger Makadi'),
+                _bookingDataRow('Номер', hotelBookingData['room']),
+                _bookingDataRow('Питание', hotelBookingData['nutrition']),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _aBlockWithInformationAboutTheBuyer() {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.white
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 15),
+            const Text('Информация о покупателе', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFFF6F6F9),
+                // color: const Color(0x00eb5757).withOpacity(0.15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: TextFormField(
+                  controller: _phoneController,
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [maskFormatter],
+                  decoration: const InputDecoration(
+                    prefixText: '+7 ',
+                    labelText: 'Номер телефона',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFFA9ABB7),
+                    ),
+                    hintText: '(***) ***-**-**',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              // width: MediaQuery.of(context).size.width * 0.9,
+              // height: MediaQuery.of(context).size.height * 0.08,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: _isEmailValid ? const Color(0xFFF6F6F9) : const Color(0x00eb5757).withOpacity(0.15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: TextFormField(
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Почта',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFFA9ABB7),
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  validator: (value) {
+                    final regex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                    bool isValid = value != null && value.isNotEmpty && regex.hasMatch(value);
+                    setState(() {
+                      _isEmailValid = isValid;
+                    });
+                    return null;
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text('Эти данные никому не передаются. После оплаты мы вышли чек на указанный вами номер и почту', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
     );
   }
 
@@ -258,211 +462,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _myAppBar() {
-    return SafeArea(
-      bottom: false,
-      child: Container(
-        color: Colors.white,
-        height: kToolbarHeight,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                onPressed: () {
-                  Navigator.pop(context);
-                }
-            ),
-            const Text(
-              'Бронирование',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            const Opacity(
-              opacity: 0,
-              child: IconButton(
-                icon: Icon(Icons.arrow_back_ios_new_outlined),
-                onPressed: null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _hotelData(Map<String, dynamic> hotelBookingData) {
-    return Column(
-      children: [
-        const SizedBox(height: 10),
-        Container(
-          width: double.infinity,
-          // height: MediaQuery.of(context).size.height * 0.2,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white
-          ),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.4,
-                  height: MediaQuery.of(context).size.height * 0.04,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    color: const Color(0xFFFFC700).withOpacity(0.2),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.star, color: Color(0xFFFFC800), size: 15),
-                      Text('${hotelBookingData['horating']} ${hotelBookingData['rating_name']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFC800)))
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text('Steigenberger Makadi', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerLeft,
-                    foregroundColor: Colors.blue,
-                  ), child: Text('${hotelBookingData['hotel_adress']}'),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
-  Widget _bookingData(Map<String, dynamic> hotelBookingData) {
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.35,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _bookingDataRow('Вылет из', hotelBookingData['departure']),
-                Row(
-                  children: [
-                    const Text('Страна, город    ', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400),
-                    ),
-                    Expanded(child: Text('${hotelBookingData['arrival_country']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start)),
-                  ],
-                ),
-                _bookingDataRow('Даты', '${hotelBookingData['tour_date_start']} – ${hotelBookingData['tour_date_stop']}'),
-                _bookingDataRow('Кол-во ночей', hotelBookingData['number_of_nights']),
-                _bookingDataRow('Отель', 'Steigenberger Makadi'),
-                _bookingDataRow('Номер', hotelBookingData['room']),
-                _bookingDataRow('Питание', hotelBookingData['nutrition']),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
-  Widget _informationBuyer() {
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 15),
-            const Text('Информация о покупателе', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 10),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: const Color(0xFFF6F6F9),
-                // color: const Color(0x00eb5757).withOpacity(0.15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: TextFormField(
-                  controller: _phoneController,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [maskFormatter],
-                  decoration: const InputDecoration(
-                    prefixText: '+7 ',
-                    labelText: 'Номер телефона',
-                    labelStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFFA9ABB7),
-                    ),
-                    hintText: '(***) ***-**-**',
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              // width: MediaQuery.of(context).size.width * 0.9,
-              // height: MediaQuery.of(context).size.height * 0.08,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: _isEmailValid ? const Color(0xFFF6F6F9) : const Color(0x00eb5757).withOpacity(0.15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Почта',
-                    labelStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFFA9ABB7),
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  validator: (value) {
-                    final regex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
-                    bool isValid = value != null && value.isNotEmpty && regex.hasMatch(value);
-                    setState(() {
-                      _isEmailValid = isValid;
-                    });
-                    return null;
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text('Эти данные никому не передаются. После оплаты мы вышли чек на указанный вами номер и почту', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _totalWidget(Map<String, dynamic> hotelBookingData) {
+  Widget _theBlockWithTheFinalPrice(Map<String, dynamic> hotelBookingData) {
     return Column(
       children: [
         const SizedBox(height: 10),
