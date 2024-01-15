@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hotels_app/screen_pages/paid_for_page.dart';
+import 'package:hotels_app/widgets/custom_button.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '../models/tourst_info.dart';
+import '../services/hotel_api.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -9,552 +13,535 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
+  final hotelApi = HotelApi();
+  Future? _bookingPageDataFuture;
+  int? price;
+  final _formKey = GlobalKey<FormState>();
+  final Map<TextEditingController, bool> _controllerValidation = {};
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  bool _isEmailValid = true;
+  final List<bool> _isVisibleList = [true];
+  List<TouristInfo> tourists = [];
+
+  final maskFormatter = MaskTextInputFormatter(
+    mask: ' (***) ***-**-**',
+    filter: { "*": RegExp(r'[0-9]') },
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _bookingPageDataFuture = hotelApi.fetchBookingPageData();
+    tourists.add(TouristInfo());
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    for (var tourist in tourists) {
+      tourist.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F9),
-      body: Column(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: Container(
-              color: Colors.white,
-              height: kToolbarHeight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      }
-                  ),
-                  const Text(
-                    'Бронирование',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  const Opacity(
-                    opacity: 0,
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_outlined),
-                      onPressed: null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.2,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.4,
-                            height: MediaQuery.of(context).size.height * 0.029,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(5),
-                              color: const Color(0xFFFFC700).withOpacity(0.2),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.star, color: Color(0xFFFFC800), size: 15),
-                                Text(' 5 Превосходно', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFC800)))
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text('Steigenberger Makadi', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                          TextButton(
-                            onPressed: () {}, child: const Text('Madinat Makadi, Safaga Road, Makadi Bay, Египет'),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              alignment: Alignment.centerLeft,
-                              foregroundColor: Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1, // занимает 1 "часть" горизонтального пространства
-                                child: Text('Вылет из', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2, // занимает 2 "части" горизонтального пространства, делая вторую колонку шире, если это желаемо
-                                child: Text('Санкт-Петербург', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text('Страна, город', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(child: Text('Египет, Хургада', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start)),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Text('Даты', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2,
-                                child: Text('19.09.2023 – 27.09.2023', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Text('Кол-во ночей', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2,
-                                child: Text('7 ночей', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Text('Отель', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2,
-                                child: Text('Steigenberger Makadi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Text('Номер', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2,
-                                child: Text('Стандартный с видом на бассейн или сад', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Text('Питание', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(
-                                flex: 2,
-                                child: Text('Все включено', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 15),
-                          const Text('Информация о покупателе', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Номер телефона', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                  Text('+7 (951) 555-99-00', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Почта', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                  Text('examplemail.000@mail.ru', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text('Эти данные никому не передаются. После оплаты мы вышли чек на указанный вами номер и почту', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.67,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Первый турист', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                              Padding(
-                                padding: const EdgeInsets.only(right: 7.0),
-                                child: Container(
-                                  height: MediaQuery.of(context).size.height * 0.05,
-                                  width: MediaQuery.of(context).size.width * 0.1,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color(0xFF0D72FF).withOpacity(0.1),
+        backgroundColor: const Color(0xFFF6F6F9),
+        body: FutureBuilder(
+          future: _bookingPageDataFuture,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Ошибка: ${snapshot.error}'));
+            } else {
+              var hotelBookingData = snapshot.data;
+              price = hotelBookingData['tour_price'] + hotelBookingData['fuel_charge'] + hotelBookingData['service_charge'];
+              return Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _myAppBar(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _hotelData(hotelBookingData),
+                            _bookingData(hotelBookingData),
+                            _informationBuyer(),
+                            _tourists(),
+                            _addTourists(),
+                            _totalWidget(hotelBookingData),
+                            CustomButton(onPressed: () {
+                              bool isFormValid = _formKey.currentState!.validate();
+                              bool areAllTouristsFieldsValid = _controllerValidation.values.every((isValid) => isValid);
+                              if (isFormValid && _isEmailValid && areAllTouristsFieldsValid) {
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PaidForPage()));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Данные необходимо заполнить.'),
+                                    duration: Duration(seconds: 3),
                                   ),
-                                  child: Image.asset('assets/images/Vector 55.png'),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Имя', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                  Text('Иван', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Фамилия', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                  Text('Иванов', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Дата рождения', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Гражданство', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Номер загранпаспорта', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.9,
-                            height: MediaQuery.of(context).size.height * 0.08,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: const Color(0xFFF6F6F9),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 15),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Срок действия загранпаспорта', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w400, color: Color(0xFFA9ABB7))),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                                );
+                              }
+                            }, text: 'Оплатить $price ₽'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.1,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Второй турист', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 7.0),
-                            child: Container(
-                              height: MediaQuery.of(context).size.height * 0.05,
-                              width: MediaQuery.of(context).size.width * 0.1,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: const Color(0xFF0D72FF).withOpacity(0.1),
-                              ),
-                              child: Image.asset('assets/images/Vector 56.png'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.1,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Добавить туриста', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 7.0),
-                            child: Container(
-                                height: MediaQuery.of(context).size.height * 0.05,
-                                width: MediaQuery.of(context).size.width * 0.1,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: const Color(0xFF0D72FF),
-                                ),
-                                child: const Icon(Icons.add, color: Colors.white,)
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: MediaQuery.of(context).size.height * 0.2,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.white
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Тур', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-                              Padding(
-                                padding: EdgeInsets.only(right: 7.0),
-                                child: Text('186 600 ₽', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Топливный сбор', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-                              Padding(
-                                padding: EdgeInsets.only(right: 7.0),
-                                child: Text('9 300 ₽', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Сервисный сбор', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-                              Padding(
-                                padding: EdgeInsets.only(right: 7.0),
-                                child: Text('2 136 ₽', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('К оплате', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
-                              Padding(
-                                padding: EdgeInsets.only(right: 7.0),
-                                child: Text('198 036 ₽', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.blue)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                  ],
+                ),
+              );
+            }
+          },
+        )
+    );
+  }
+
+  Widget _tourists() {
+    const List<String> numbers = ['Первый', 'Второй', 'Третий', 'Четвертый', 'Пятый', 'Шестой', 'Седьмой',
+      'Восьмой', 'Девятый', 'Десятый', 'Одиннадцатый', 'Двенадцатый', 'Тринадцатый', 'Четырнадцатый',
+      'Пятнадцатый', 'Шестнадцатый', 'Семнадцатый', 'Восемнадцатый', 'Девятнадцатый', 'Двадцатый'];
+    return Column(
+      children: List.generate(tourists.length, (index) {
+        String touristLabel;
+        if (index < numbers.length) {
+          touristLabel = '${numbers[index]} турист';
+        } else {
+          int numericLabel = index + 1;
+          touristLabel = '$numericLabel турист';
+        }
+        return Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.1,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white
               ),
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.11,
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            fixedSize: const Size.fromHeight(50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PaidForPage()));
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(touristLabel, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isVisibleList[index] = !_isVisibleList[index];
+                            });
                           },
-                          child: const Text('Оплатить 198 036 ₽', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)))),
-                ],
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.1,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: const Color(0xFF0D72FF).withOpacity(0.1),
+                            ),
+                            child: Icon(_isVisibleList[index] ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: const Color(0xFF0D72FF)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
+            Container(
+              color: Colors.white,
+              child: Visibility(
+                visible: _isVisibleList[index],
+                child: Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      _touristData('Имя', tourists[index].nameController),
+                      const SizedBox(height: 10),
+                      _touristData('Фамилия', tourists[index].surNameController),
+                      const SizedBox(height: 10),
+                      _touristData('Дата рождения', tourists[index].dateOfBirthController),
+                      const SizedBox(height: 10),
+                      _touristData('Гражданство', tourists[index].citizenshipController),
+                      const SizedBox(height: 10),
+                      _touristData('Номер загранпаспорта', tourists[index].passportNumberController),
+                      const SizedBox(height: 10),
+                      _touristData('Срок действия загранпаспорта', tourists[index].validPeriodPassportController),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _touristData(String title, TextEditingController controller) {
+    _controllerValidation.putIfAbsent(controller, () => true);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: _controllerValidation[controller]! ? const Color(0xFFF6F6F9) : const Color(0x00eb5757).withOpacity(0.15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: TextFormField(
+          controller: controller,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            labelText: title,
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Color(0xFFA9ABB7),
+            ),
+            border: InputBorder.none,
           ),
-        ],
+          validator: (value) {
+            bool isValid = value != null && value.isNotEmpty;
+            _controllerValidation[controller] = isValid;
+            setState(() {});
+            return null;
+          },
+        ),
       ),
     );
   }
+
+  Widget _addTourists() {
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.1,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.white
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Добавить туриста', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _isVisibleList.add(true);
+                  tourists.add(TouristInfo());
+                });
+              },
+              child: Container(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                  width: MediaQuery.of(context).size.width * 0.1,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFF0D72FF),
+                  ),
+                  child:  const Icon(Icons.add, color: Colors.white)
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _myAppBar() {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        color: Colors.white,
+        height: kToolbarHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () {
+                  Navigator.pop(context);
+                }
+            ),
+            const Text(
+              'Бронирование',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
+            const Opacity(
+              opacity: 0,
+              child: IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_outlined),
+                onPressed: null,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _hotelData(Map<String, dynamic> hotelBookingData) {
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          // height: MediaQuery.of(context).size.height * 0.2,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  height: MediaQuery.of(context).size.height * 0.04,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFFFC700).withOpacity(0.2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.star, color: Color(0xFFFFC800), size: 15),
+                      Text('${hotelBookingData['horating']} ${hotelBookingData['rating_name']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFC800)))
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text('Steigenberger Makadi', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                    foregroundColor: Colors.blue,
+                  ), child: Text('${hotelBookingData['hotel_adress']}'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _bookingData(Map<String, dynamic> hotelBookingData) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height * 0.35,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _bookingDataRow('Вылет из', hotelBookingData['departure']),
+                Row(
+                  children: [
+                    const Text('Страна, город    ', style: TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400),
+                    ),
+                    Expanded(child: Text('${hotelBookingData['arrival_country']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start)),
+                  ],
+                ),
+                _bookingDataRow('Даты', '${hotelBookingData['tour_date_start']} – ${hotelBookingData['tour_date_stop']}'),
+                _bookingDataRow('Кол-во ночей', hotelBookingData['number_of_nights']),
+                _bookingDataRow('Отель', 'Steigenberger Makadi'),
+                _bookingDataRow('Номер', hotelBookingData['room']),
+                _bookingDataRow('Питание', hotelBookingData['nutrition']),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _informationBuyer() {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.white
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 15),
+            const Text('Информация о покупателе', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 10),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFFF6F6F9),
+                // color: const Color(0x00eb5757).withOpacity(0.15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: TextFormField(
+                  controller: _phoneController,
+                  textInputAction: TextInputAction.next,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [maskFormatter],
+                  decoration: const InputDecoration(
+                    prefixText: '+7 ',
+                    labelText: 'Номер телефона',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFFA9ABB7),
+                    ),
+                    hintText: '(***) ***-**-**',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              // width: MediaQuery.of(context).size.width * 0.9,
+              // height: MediaQuery.of(context).size.height * 0.08,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: _isEmailValid ? const Color(0xFFF6F6F9) : const Color(0x00eb5757).withOpacity(0.15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: TextFormField(
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Почта',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFFA9ABB7),
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  validator: (value) {
+                    final regex = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                    bool isValid = value != null && value.isNotEmpty && regex.hasMatch(value);
+                    setState(() {
+                      _isEmailValid = isValid;
+                    });
+                    return null;
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text('Эти данные никому не передаются. После оплаты мы вышли чек на указанный вами номер и почту', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _totalWidget(Map<String, dynamic> hotelBookingData) {
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          height: MediaQuery.of(context).size.height * 0.2,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Тур', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 7.0),
+                      child: Text('${hotelBookingData['tour_price']} ₽', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Топливный сбор', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 7.0),
+                      child: Text('${hotelBookingData['fuel_charge']} ₽', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Сервисный сбор', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 7.0),
+                      child: Text('${hotelBookingData['service_charge']} ₽', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('К оплате', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Color(0xFF828796))),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 7.0),
+                      child: Text('$price ₽', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: Colors.blue)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _bookingDataRow(String title, dynamic subtitle) {
+    String stringSubtitle = subtitle.toString();
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: Text(title, style: const TextStyle(color: Color(0x7F828796), fontSize: 16, fontWeight: FontWeight.w400)),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 2,
+          child: Text(stringSubtitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
+        ),
+      ],
+    );
+  }
 }
+
