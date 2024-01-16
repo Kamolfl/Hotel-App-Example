@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hotels_app/screen_pages/paid_for_page.dart';
-import 'package:hotels_app/widgets/custom_button.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../models/tourst_info.dart';
+import '../components/custom_button.dart';
+import '../models/tourist_info.dart';
 import '../services/hotel_api.dart';
+import '../utils/phone_input_formatter.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -21,19 +21,26 @@ class _BookingPageState extends State<BookingPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isEmailValid = true;
-  final List<bool> _isVisibleList = [true];
+  final List<bool> _isVisibleList = [false];
   List<TouristInfo> tourists = [];
+  final FocusNode _focusNode = FocusNode();
 
-  final maskFormatter = MaskTextInputFormatter(
-    mask: ' (***) ***-**-**',
-    filter: { "*": RegExp(r'[0-9]') },
-  );
 
   @override
   void initState() {
     super.initState();
     _bookingPageDataFuture = hotelApi.fetchBookingPageData();
     tourists.add(TouristInfo());
+    _focusNode.addListener(_focusChanged);
+  }
+
+  void _focusChanged() {
+    if (_focusNode.hasFocus && _phoneController.text.isEmpty){
+      _phoneController.text = '(***) ***-**-**';
+      _phoneController.selection = const TextSelection.collapsed(offset: 1);
+    } else if (_focusNode.hasFocus && _phoneController.text == '(***) ***-**-**') {
+      _phoneController.clear();
+    }
   }
 
   @override
@@ -42,6 +49,8 @@ class _BookingPageState extends State<BookingPage> {
     for (var tourist in tourists) {
       tourist.dispose();
     }
+    _focusNode.removeListener(_focusChanged);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -76,14 +85,15 @@ class _BookingPageState extends State<BookingPage> {
                             _theBlockWithTheFinalPrice(hotelBookingData),
                             CustomButton(onPressed: () {
                               bool isFormValid = _formKey.currentState!.validate();
+                              bool isPhoneValid = PhoneInputFormatter().isPhoneValid(_phoneController.text);
                               bool areAllTouristsFieldsValid = _controllerValidation.values.every((isValid) => isValid);
-                              if (isFormValid && _isEmailValid && areAllTouristsFieldsValid) {
+                              if (isFormValid && _isEmailValid && areAllTouristsFieldsValid && isPhoneValid) {
                                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => const PaidForPage()));
                               } else {
+                                String errorMessage = 'Данные необходимо заполнить.';
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Данные необходимо заполнить.'),
-                                    duration: Duration(seconds: 3),
+                                  SnackBar(
+                                    content: Text(errorMessage),
                                   ),
                                 );
                               }
@@ -246,9 +256,10 @@ class _BookingPageState extends State<BookingPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: TextFormField(
                   controller: _phoneController,
+                  focusNode: _focusNode,
                   textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [maskFormatter],
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [PhoneInputFormatter()],
                   decoration: const InputDecoration(
                     prefixText: '+7 ',
                     labelText: 'Номер телефона',
@@ -257,7 +268,6 @@ class _BookingPageState extends State<BookingPage> {
                       fontWeight: FontWeight.w400,
                       color: Color(0xFFA9ABB7),
                     ),
-                    hintText: '(***) ***-**-**',
                     border: InputBorder.none,
                   ),
                 ),
@@ -362,8 +372,8 @@ class _BookingPageState extends State<BookingPage> {
             ),
             Container(
               color: Colors.white,
-              child: Visibility(
-                visible: _isVisibleList[index],
+              child: Offstage(
+                offstage: _isVisibleList[index],
                 child: Padding(
                   padding: const EdgeInsets.all(15),
                   child: Column(
