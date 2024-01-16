@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hotels_app/services/hotel_api.dart';
 import 'package:hotels_app/screen_pages/hotel_page.dart';
-import 'package:hotels_app/widgets/custom_button.dart';
+import '../components/custom_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

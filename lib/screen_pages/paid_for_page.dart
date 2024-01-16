@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotels_app/screen_pages/home_page.dart';
-import 'package:hotels_app/widgets/custom_button.dart';
+import '../components/custom_button.dart';
 
 class PaidForPage extends StatefulWidget {
   const PaidForPage({super.key});

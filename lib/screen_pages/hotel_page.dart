@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hotels_app/screen_pages/booking_page.dart';
-import 'package:hotels_app/widgets/custom_button.dart';
-
+import '../components/custom_button.dart';
 import '../services/hotel_api.dart';
 
 class HotelPage extends StatefulWidget {
@@ -136,6 +135,22 @@ class _HotelPageState extends State<HotelPage> {
                                       return const Center(child: CircularProgressIndicator(color: Colors.white,));
                                     }
                                   },
+                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                    return Container(
+                                      width: imageWidth,
+                                      height: MediaQuery.of(context).size.height * 0.35,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        color: Colors.blueGrey,
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          'Изображение отсутствует',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ));
                           }),
                       Positioned(
@@ -251,6 +266,7 @@ class _HotelPageState extends State<HotelPage> {
                   height: MediaQuery.of(context).size.height * 0.35,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
+                    color: Colors.blueGrey,
                   ),
                   child: Stack(
                     alignment: Alignment.bottomCenter,
@@ -273,9 +289,26 @@ class _HotelPageState extends State<HotelPage> {
                                     if (loadingProgress == null) {
                                       return child;
                                     } else {
-                                      return const Center(child: CircularProgressIndicator());
+                                      return const Center(child: CircularProgressIndicator(color: Colors.white,));
                                     }
                                   },
+                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                    return Container(
+                                      width: imageWidth,
+                                      height: MediaQuery.of(context).size.height * 0.35,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(15),
+                                        color: Colors.blueGrey,
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          'Изображение отсутствует',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    );
+                                  },
+
                                 ));
                           }),
                       Positioned(
